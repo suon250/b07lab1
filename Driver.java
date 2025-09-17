@@ -18,4 +18,8 @@ public class Driver {
         else
             System.out.println("1 is not a root of s");
     }
+    // expected output:
+    // 0.0
+    // s(0.1) = 5.8041
+    // 1 is a root of s
 }
