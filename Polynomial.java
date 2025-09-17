@@ -14,6 +14,8 @@ public class Polynomial {
     }
 
     // 多项式相加
+    // 返回的是新的polynomial对象，而不是单纯的array，作为包装后的
+    // 抽象容器更为方便，之后可以直接对新的对象执行各种操作
     public Polynomial add(Polynomial other) {
         int maxLen = Math.max(this.coefficients.length, other.coefficients.length);
         double[] result = new double[maxLen];
