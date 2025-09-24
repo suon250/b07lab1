@@ -1,45 +1,102 @@
+import java.io.*;
+import java.util.*;
+
 public class Polynomial {
-    private double[] coefficients;
+    private double[] coefficients;  // 非零系数
+    private int[] exponents;        // 对应指数
 
-    // 无参构造函数，表示零多项式
-    public Polynomial() {
-        this.coefficients = new double[]{0};
+    // === 构造函数 1：从系数数组和指数数组直接构造 ===
+    public Polynomial(double[] coefficients, int[] exponents) {
+        this.coefficients = coefficients;
+        this.exponents = exponents;
     }
 
-    // 带参构造函数，传入系数数组
-    public Polynomial(double[] coefficients) {
-        // 拷贝一份，避免外部数组修改影响
-        this.coefficients = new double[coefficients.length];
-        System.arraycopy(coefficients, 0, this.coefficients, 0, coefficients.length);
+    // === 构造函数 2：从文件读入 ===
+    // 文件中假设是一行，比如: "5-3x2+7x8"
+    public Polynomial(File file) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(file));
+        String line = br.readLine().trim();
+        br.close();
+        parsePolynomial(line);
     }
 
-    // 多项式相加
-    // 返回的是新的polynomial对象，而不是单纯的array，作为包装后的
-    // 抽象容器更为方便，之后可以直接对新的对象执行各种操作
-    public Polynomial add(Polynomial other) {
-        int maxLen = Math.max(this.coefficients.length, other.coefficients.length);
-        double[] result = new double[maxLen];
+    private void parsePolynomial(String poly) {
+        // 把 - 替换成 +- 来分割
+        poly = poly.replace("-", "+-");
+        if (poly.startsWith("+")) poly = poly.substring(1);
+        String[] terms = poly.split("\\+");
 
-        for (int i = 0; i < maxLen; i++) {
-            double a = (i < this.coefficients.length) ? this.coefficients[i] : 0;
-            double b = (i < other.coefficients.length) ? other.coefficients[i] : 0;
-            result[i] = a + b;
+        List<Double> coeffList = new ArrayList<>();
+        List<Integer> expoList = new ArrayList<>();
+
+        for (String t : terms) {
+            if (t.isEmpty()) continue;
+            double coeff;
+            int expo;
+            if (t.contains("x")) {
+                String[] parts = t.split("x");
+                // 系数部分
+                if (parts[0].equals("") || parts[0].equals("+")) coeff = 1;
+                else if (parts[0].equals("-")) coeff = -1;
+                else coeff = Double.parseDouble(parts[0]);
+                // 指数部分
+                if (parts.length == 1 || parts[1].equals("")) expo = 1;
+                else expo = Integer.parseInt(parts[1]);
+            } else {
+                coeff = Double.parseDouble(t);
+                expo = 0;
+            }
+            coeffList.add(coeff);
+            expoList.add(expo);
         }
 
-        return new Polynomial(result);
+        this.coefficients = coeffList.stream().mapToDouble(Double::doubleValue).toArray();
+        this.exponents = expoList.stream().mapToInt(Integer::intValue).toArray();
     }
 
-    // 计算在某个 x 值下的多项式值
-    public double evaluate(double x) {
-        double sum = 0;
+    // === 多项式乘法 ===
+    public Polynomial multiply(Polynomial other) {
+        Map<Integer, Double> result = new HashMap<>();
+        for (int i = 0; i < this.coefficients.length; i++) {
+            for (int j = 0; j < other.coefficients.length; j++) {
+                int expo = this.exponents[i] + other.exponents[j];
+                double coeff = this.coefficients[i] * other.coefficients[j];
+                result.put(expo, result.getOrDefault(expo, 0.0) + coeff);
+            }
+        }
+
+        // 转换成数组
+        int size = result.size();
+        double[] newCoeffs = new double[size];
+        int[] newExps = new int[size];
+        int idx = 0;
+        for (int key : result.keySet()) {
+            newExps[idx] = key;
+            newCoeffs[idx] = result.get(key);
+            idx++;
+        }
+
+        return new Polynomial(newCoeffs, newExps);
+    }
+
+    // === 保存到文件 ===
+    public void saveToFile(String fileName) throws IOException {
+        BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
+        bw.write(toString());
+        bw.close();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < coefficients.length; i++) {
-            sum += coefficients[i] * Math.pow(x, i);
+            double c = coefficients[i];
+            int e = exponents[i];
+            if (i > 0 && c >= 0) sb.append("+");
+            if (e == 0) sb.append(c);
+            else if (e == 1) sb.append(c + "x");
+            else sb.append(c + "x" + e);
         }
-        return sum;
-    }
-
-    // 判断某个值是否为多项式的根
-    public boolean hasRoot(double x) {
-        return Math.abs(evaluate(x)) < 1e-6; // 允许一点点误差
+        return sb.toString();
     }
 }
