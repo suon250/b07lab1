@@ -1,25 +1,20 @@
+import java.io.*;
+
 public class Driver {
-    public static void main(String [] args) {
-        Polynomial p = new Polynomial();
-        System.out.println(p.evaluate(3));
+    public static void main(String[] args) throws Exception {
+        // 手动构造两个多项式
+        Polynomial p1 = new Polynomial(new double[]{6, -2, 5}, new int[]{0, 1, 3}); // 6 -2x +5x^3
+        Polynomial p2 = new Polynomial(new double[]{1, 1}, new int[]{0, 1});        // 1 + x
 
-        double [] c1 = {6,0,0,5};
-        Polynomial p1 = new Polynomial(c1);
+        Polynomial result = p1.multiply(p2);
+        System.out.println("p1 = " + p1);
+        System.out.println("p2 = " + p2);
+        System.out.println("p1 * p2 = " + result);
 
-        double [] c2 = {0,-2,0,0,-9};
-        Polynomial p2 = new Polynomial(c2);
-
-        Polynomial s = p1.add(p2);
-
-        System.out.println("s(0.1) = " + s.evaluate(0.1));
-
-        if(s.hasRoot(1))
-            System.out.println("1 is a root of s");
-        else
-            System.out.println("1 is not a root of s");
+        // 测试文件读取
+        Polynomial p3 = new Polynomial(new File("input.txt"));  // 假设文件内容：5-3x2+7x8
+        System.out.println("From file: " + p3);
+        p3.saveToFile("output.txt");
     }
-    // expected output:
-    // 0.0
-    // s(0.1) = 5.8041
-    // 1 is a root of s
 }
+
