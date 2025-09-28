@@ -1,4 +1,6 @@
+package lab2_2;
 import java.io.*;
+
 import java.util.*;
 
 public class Polynomial {
@@ -56,25 +58,34 @@ public class Polynomial {
 
     // === 多项式乘法 ===
     public Polynomial multiply(Polynomial other) {
-        Map<Integer, Double> result = new HashMap<>();
+        // 找最大指数
+        int maxExp = Arrays.stream(this.exponents).max().orElse(0) +
+                     Arrays.stream(other.exponents).max().orElse(0);
+
+        // 用数组存储结果，下标就是指数
+        double[] resultCoeffs = new double[maxExp + 1];
+
+        // 累加乘积结果
         for (int i = 0; i < this.coefficients.length; i++) {
             for (int j = 0; j < other.coefficients.length; j++) {
                 int expo = this.exponents[i] + other.exponents[j];
                 double coeff = this.coefficients[i] * other.coefficients[j];
-                result.put(expo, result.getOrDefault(expo, 0.0) + coeff);
+                resultCoeffs[expo] += coeff;
             }
         }
 
-        // 转换成数组
-        int size = result.size();
-        double[] newCoeffs = new double[size];
-        int[] newExps = new int[size];
-        int idx = 0;
-        for (int key : result.keySet()) {
-            newExps[idx] = key;
-            newCoeffs[idx] = result.get(key);
-            idx++;
+        // 把非零项提取出来
+        List<Double> coeffList = new ArrayList<>();
+        List<Integer> expoList = new ArrayList<>();
+        for (int e = 0; e <= maxExp; e++) {
+            if (resultCoeffs[e] != 0) {
+                coeffList.add(resultCoeffs[e]);
+                expoList.add(e);
+            }
         }
+
+        double[] newCoeffs = coeffList.stream().mapToDouble(Double::doubleValue).toArray();
+        int[] newExps = expoList.stream().mapToInt(Integer::intValue).toArray();
 
         return new Polynomial(newCoeffs, newExps);
     }
