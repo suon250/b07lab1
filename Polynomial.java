@@ -96,18 +96,4 @@ public class Polynomial {
         bw.write(toString());
         bw.close();
     }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < coefficients.length; i++) {
-            double c = coefficients[i];
-            int e = exponents[i];
-            if (i > 0 && c >= 0) sb.append("+");
-            if (e == 0) sb.append(c);
-            else if (e == 1) sb.append(c + "x");
-            else sb.append(c + "x" + e);
-        }
-        return sb.toString();
-    }
 }
